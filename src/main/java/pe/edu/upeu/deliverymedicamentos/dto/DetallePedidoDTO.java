@@ -2,6 +2,8 @@ package pe.edu.upeu.deliverymedicamentos.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -10,6 +12,6 @@ public class DetallePedidoDTO {
     private Long pedidoId;
     private Long medicamentoId;
     private Integer cantidad;
-    private Double subtotal;
+    private BigDecimal subtotal;
 }
 

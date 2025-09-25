@@ -3,6 +3,8 @@ package pe.edu.upeu.deliverymedicamentos.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -27,6 +29,6 @@ public class DetallePedido {
     private Integer cantidad;
 
     @Column(name = "SUBTOTAL", nullable = false)
-    private Double subtotal;
+    private BigDecimal subtotal;
 }
 
