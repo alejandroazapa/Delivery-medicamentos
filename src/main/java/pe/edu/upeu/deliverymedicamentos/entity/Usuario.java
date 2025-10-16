@@ -24,7 +24,7 @@ public class Usuario {
     @Column(name = "PASSWORD", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "ROL", nullable = false, length = 20)
-    private String rol;  // Ejemplo: CLIENTE, REPARTIDOR, ADMIN
+    @Column(name = "ROL", nullable = false, length = 30)
+    private String rol = "CLIENTE";  // Ejemplo: CLIENTE, REPARTIDOR, ADMIN
 }
 

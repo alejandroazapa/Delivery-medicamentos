@@ -2,8 +2,8 @@ package pe.edu.upeu.deliverymedicamentos.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import pe.edu.upeu.deliverymedicamentos.entity.DetallePedido;
+import pe.edu.upeu.deliverymedicamentos.entity.Categoria;
 
 @Repository
-public interface DetallePedidoRepository extends JpaRepository<DetallePedido, Long> {
+public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 }

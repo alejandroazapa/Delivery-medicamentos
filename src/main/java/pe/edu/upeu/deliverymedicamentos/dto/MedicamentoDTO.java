@@ -1,12 +1,14 @@
 package pe.edu.upeu.deliverymedicamentos.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 public class MedicamentoDTO {
     private Long id;
     private String nombre;
@@ -14,5 +16,7 @@ public class MedicamentoDTO {
     private String codigoBarras;
     private BigDecimal precio;
     private Integer stock;
-}
 
+    private Long categoriaId;
+    private String categoriaNombre;
+}

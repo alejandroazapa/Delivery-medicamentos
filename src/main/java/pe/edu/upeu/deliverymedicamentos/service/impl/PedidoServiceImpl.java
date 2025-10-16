@@ -1,120 +1,71 @@
 package pe.edu.upeu.deliverymedicamentos.service.impl;
 
+import org.hibernate.service.spi.ServiceException;
+import org.springframework.stereotype.Service;
 import pe.edu.upeu.deliverymedicamentos.controller.exception.ResourceNotFoundException;
-import pe.edu.upeu.deliverymedicamentos.dto.DetallePedidoDTO;
 import pe.edu.upeu.deliverymedicamentos.dto.PedidoDTO;
 import pe.edu.upeu.deliverymedicamentos.entity.DetallePedido;
 import pe.edu.upeu.deliverymedicamentos.entity.Medicamento;
 import pe.edu.upeu.deliverymedicamentos.entity.Pedido;
-import pe.edu.upeu.deliverymedicamentos.entity.Usuario;
+import pe.edu.upeu.deliverymedicamentos.mappers.PedidoMapper;
 import pe.edu.upeu.deliverymedicamentos.repository.DetallePedidoRepository;
 import pe.edu.upeu.deliverymedicamentos.repository.MedicamentoRepository;
 import pe.edu.upeu.deliverymedicamentos.repository.PedidoRepository;
-import pe.edu.upeu.deliverymedicamentos.repository.UsuarioRepository;
 import pe.edu.upeu.deliverymedicamentos.service.service.PedidoService;
-import org.hibernate.service.spi.ServiceException;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
 
     private final PedidoRepository pedidoRepo;
-    private final UsuarioRepository usuarioRepo;
     private final MedicamentoRepository medicamentoRepo;
     private final DetallePedidoRepository detalleRepo;
+    private final PedidoMapper mapper;
 
     public PedidoServiceImpl(PedidoRepository pedidoRepo,
-                             UsuarioRepository usuarioRepo,
                              MedicamentoRepository medicamentoRepo,
-                             DetallePedidoRepository detalleRepo) {
+                             DetallePedidoRepository detalleRepo,
+                             PedidoMapper mapper) {
         this.pedidoRepo = pedidoRepo;
-        this.usuarioRepo = usuarioRepo;
         this.medicamentoRepo = medicamentoRepo;
         this.detalleRepo = detalleRepo;
+        this.mapper = mapper;
     }
 
     @Override
     public PedidoDTO create(PedidoDTO dto) throws ServiceException {
-        // Buscar cliente
-        Usuario cliente = usuarioRepo.findById(dto.getClienteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+        Pedido pedido = mapper.toEntity(dto);
+        BigDecimal total = BigDecimal.ZERO;
 
-        // Buscar repartidor (puede ser null si no asignado aún)
-        Usuario repartidor = null;
-        if (dto.getRepartidorId() != null) {
-            repartidor = usuarioRepo.findById(dto.getRepartidorId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Repartidor no encontrado"));
+        for (DetallePedido detalle : pedido.getDetalles()) {
+            Medicamento med = medicamentoRepo.findById(detalle.getMedicamento().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Medicamento no encontrado"));
+            detalle.setPedido(pedido);
+            detalle.setPrecioUnitario(med.getPrecio());
+            detalle.setSubtotal(med.getPrecio().multiply(BigDecimal.valueOf(detalle.getCantidad())));
+            total = total.add(detalle.getSubtotal());
         }
 
-        // Crear Pedido
-        Pedido pedido = Pedido.builder()
-                .fecha(dto.getFecha() != null ? dto.getFecha() : LocalDateTime.now())
-                .estado(dto.getEstado() != null ? dto.getEstado() : "PENDIENTE")
-                .cliente(cliente)
-                .repartidor(repartidor)
-                .build();
+        pedido.setMontoTotal(total);
+        pedido.setEstado("PENDIENTE");
 
-        pedido = pedidoRepo.save(pedido);
-
-        // Crear Detalles
-        List<DetallePedido> detalles = new ArrayList<>();
-        if (dto.getDetalles() != null) {
-            for (DetallePedidoDTO detDTO : dto.getDetalles()) {
-                Medicamento medicamento = medicamentoRepo.findById(detDTO.getMedicamentoId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Medicamento no encontrado"));
-
-                DetallePedido detalle = DetallePedido.builder()
-                        .pedido(pedido)
-                        .medicamento(medicamento)
-                        .cantidad(detDTO.getCantidad())
-                        .subtotal(detDTO.getSubtotal())
-                        .build();
-
-                detalles.add(detalleRepo.save(detalle));
-            }
-        }
-
-        pedido.setDetalles(detalles);
-        pedidoRepo.save(pedido);
-
-        // Armar PedidoDTO de respuesta
-        dto.setId(pedido.getId());
-        dto.setFecha(pedido.getFecha());
-        dto.setEstado(pedido.getEstado());
-
-        return dto;
+        return mapper.toDTO(pedidoRepo.save(pedido));
     }
 
     @Override
     public PedidoDTO update(Long id, PedidoDTO dto) throws ServiceException {
         Pedido pedido = pedidoRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado"));
-
-        pedido.setEstado(dto.getEstado() != null ? dto.getEstado() : pedido.getEstado());
-        pedidoRepo.save(pedido);
-
-        dto.setId(pedido.getId());
-        dto.setFecha(pedido.getFecha());
-        return dto;
+        pedido.setEstado(dto.getEstado());
+        return mapper.toDTO(pedidoRepo.save(pedido));
     }
 
     @Override
     public PedidoDTO findById(Long id) throws ServiceException {
-        Pedido pedido = pedidoRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado"));
-
-        PedidoDTO dto = new PedidoDTO();
-        dto.setId(pedido.getId());
-        dto.setFecha(pedido.getFecha());
-        dto.setEstado(pedido.getEstado());
-        dto.setClienteId(pedido.getCliente().getId());
-        dto.setRepartidorId(pedido.getRepartidor() != null ? pedido.getRepartidor().getId() : null);
-
-        return dto;
+        return mapper.toDTO(pedidoRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado")));
     }
 
     @Override
@@ -127,18 +78,6 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public List<PedidoDTO> findAll() throws ServiceException {
-        List<Pedido> pedidos = pedidoRepo.findAll();
-        List<PedidoDTO> lista = new ArrayList<>();
-        for (Pedido pedido : pedidos) {
-            PedidoDTO dto = new PedidoDTO();
-            dto.setId(pedido.getId());
-            dto.setFecha(pedido.getFecha());
-            dto.setEstado(pedido.getEstado());
-            dto.setClienteId(pedido.getCliente().getId());
-            dto.setRepartidorId(pedido.getRepartidor() != null ? pedido.getRepartidor().getId() : null);
-            lista.add(dto);
-        }
-        return lista;
+        return mapper.toDTOs(pedidoRepo.findAll());
     }
 }
-

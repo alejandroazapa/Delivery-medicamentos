@@ -1,34 +1,43 @@
 package pe.edu.upeu.deliverymedicamentos.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Builder
 @Entity
-@Table(name = "TBL_DETALLES_PEDIDO")
+@Table(name = "TBL_DETALLE_PEDIDO")
 public class DetallePedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    // 🔗 Muchos detalles pertenecen a un solo pedido
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PEDIDO_ID", nullable = false)
     private Pedido pedido;
 
-    @ManyToOne
+    // 🔗 Cada detalle tiene un medicamento
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEDICAMENTO_ID", nullable = false)
     private Medicamento medicamento;
 
     @Column(name = "CANTIDAD", nullable = false)
     private Integer cantidad;
 
-    @Column(name = "SUBTOTAL", nullable = false)
+    @Column(name = "PRECIO_UNITARIO", nullable = false, precision = 10, scale = 2)
+    private BigDecimal precioUnitario;
+
+    @Column(name = "SUBTOTAL", nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
 }
+
 

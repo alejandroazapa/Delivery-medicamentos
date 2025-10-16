@@ -4,38 +4,38 @@ import org.hibernate.service.spi.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pe.edu.upeu.deliverymedicamentos.dto.PedidoDTO;
-import pe.edu.upeu.deliverymedicamentos.service.service.PedidoService;
+import pe.edu.upeu.deliverymedicamentos.dto.CategoriaDTO;
+import pe.edu.upeu.deliverymedicamentos.service.service.CategoriaService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/pedidos")
-public class PedidoController {
+@RequestMapping("/api/v1/categorias")
+public class CategoriaController {
 
-    private final PedidoService service;
+    private final CategoriaService service;
 
-    public PedidoController(PedidoService service) {
+    public CategoriaController(CategoriaService service) {
         this.service = service;
     }
 
     @GetMapping
-    public ResponseEntity<List<PedidoDTO>> findAll() {
+    public ResponseEntity<List<CategoriaDTO>> findAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PedidoDTO> findById(@PathVariable Long id) throws ServiceException {
+    public ResponseEntity<CategoriaDTO> findById(@PathVariable Long id) throws ServiceException {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<PedidoDTO> create(@RequestBody PedidoDTO dto) throws ServiceException {
+    public ResponseEntity<CategoriaDTO> create(@RequestBody CategoriaDTO dto) throws ServiceException {
         return new ResponseEntity<>(service.create(dto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PedidoDTO> update(@PathVariable Long id, @RequestBody PedidoDTO dto)
+    public ResponseEntity<CategoriaDTO> update(@PathVariable Long id, @RequestBody CategoriaDTO dto)
             throws ServiceException {
         return ResponseEntity.ok(service.update(id, dto));
     }
@@ -46,5 +46,3 @@ public class PedidoController {
         return ResponseEntity.noContent().build();
     }
 }
-
-

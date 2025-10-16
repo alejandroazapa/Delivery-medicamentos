@@ -1,17 +1,21 @@
 package pe.edu.upeu.deliverymedicamentos.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 public class PedidoDTO {
     private Long id;
-    private LocalDateTime fecha;
+    private Long usuarioId;
+    private LocalDateTime fechaPedido;
+    private BigDecimal montoTotal;
     private String estado;
-    private Long clienteId;
-    private Long repartidorId;
     private List<DetallePedidoDTO> detalles;
 }
